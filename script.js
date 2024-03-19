@@ -32,13 +32,18 @@ const questionElement = document.getElementById("question");
 const optionsElement = document.getElementById("options");
 const nextButton = document.getElementById("nextButton");
 
+let correctCount = 0;
+let incorrectCount = 0;
+const totalQuestions = triviaData.length
+const incorrectAnswers = []; 
+
 // Inicializa el índice de pregunta actual
 let currentQuestionIndex = 0;
 
 // Función para mostrar la pregunta actual y sus alternativas
 function showQuestion() {
     
-    const currentQuestion = triviaData[0];
+    const currentQuestion = triviaData[currentQuestionIndex];
     questionElement.textContent = currentQuestion.question;
 
     imageContainer.innerHTML = `<img src="${currentQuestion.imagen}" width=800  alt="Imagen de la trivia">`;
@@ -55,16 +60,16 @@ function showQuestion() {
             showNextQuestion(); // Mostrar la próxima pregunta después de verificar
         };
 
-        optionsElement.appendChild(optionButton);
+        optionsElement.appendChild(optionButton); // agrega las opciones a la lista de opciones
     });
 }
 // Función para mostrar la próxima pregunta
 function showNextQuestion() {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < triviaData.length) {
+    currentQuestionIndex++; // aumenta el index en 1
+    if (currentQuestionIndex < triviaData.length) { // valida si hay más preguntas
         showQuestion(); // Mostrar la próxima pregunta
     } else {
-        showAllQuestions(); // Mostrar todas las preguntas si ya no hay más
+        showResult(); // Mostrar todas las preguntas si ya no hay más
     }
 }
 
@@ -72,29 +77,65 @@ function showNextQuestion() {
 function checkAnswer(userAnswer) {
     const correctAnswer = triviaData[currentQuestionIndex].answer;
     if (userAnswer === correctAnswer) {
-        alert("¡Respuesta correcta!");
+        // Incrementar el contador de respuestas corrcetas
+        correctCount++; 
     } else {
-        alert(`Respuesta incorrecta. La respuesta correcta es: ${correctAnswer}`);
+        // Incrementar el contador de respuestas incorrectas
+        incorrectCount++
+        incorrectAnswers.push({
+            question: triviaData[currentQuestionIndex].question,
+            correctAnswer: correctAnswer,
+            userAnswer: userAnswer
+        });
     }
 }
 
-// Función para pasar a la siguiente pregunta
-function nextQuestion() {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < triviaData.length) {
-        showQuestion();
-    } else {
-        nextButton.textContent = "Terminar";
-        nextButton.onclick = showAllQuestions;
-    }
-}
 
-// Función para mostrar todas las preguntas y respuestas al finalizar
-function showAllQuestions() {
+// Función para mostrar el resultado final en la tarjeta
+function showResult() {
+    const resultContent = document.getElementById("resultContent");
+    resultContent.innerHTML = `Total de preguntas correctas: ${correctCount}<br>`;
+    resultContent.innerHTML += `Total de preguntas incorrectas: ${incorrectCount}<br><br>`;
+    resultContent.innerHTML += "Lista de todas las preguntas con las respuestas correctas e incorrectas:<br><br>";
+
     triviaData.forEach((questionData, index) => {
-        alert(`Pregunta ${index + 1}: ${questionData.question}\nRespuesta: ${questionData.answer}`);
+        const question = questionData.question;
+        const correctAnswer = questionData.answer;
+        const userAnswer = incorrectAnswers[index] ? incorrectAnswers[index].userAnswer : "No respondida";
+        resultContent.innerHTML += `<strong>Pregunta ${index + 1}:</strong> ${question}<br>`;
+        resultContent.innerHTML += `Respuesta correcta: ${correctAnswer}<br>`;
+        resultContent.innerHTML += `Respuesta del usuario: ${userAnswer}<br><br>`;
     });
+
+    // remove cardGame
+    // Mostrar la tarjeta de resultados
+    const gameCard = document.getElementById("gameCard");
+    gameCard.classList.add("hidden");
+
+    // Mostrar la tarjeta de resultados
+    const resultCard = document.getElementById("resultCard");
+    resultCard.classList.remove("hidden");
 }
+
+// Evento clic del botón "Reiniciar"
+document.getElementById("restartButton").addEventListener("click", function() {
+    // Restaurar valores predeterminados
+    currentQuestionIndex = 0;
+    correctCount = 0;
+    incorrectCount = 0;
+    incorrectAnswers.length = 0;
+    
+    // Ocultar la tarjeta de resultados
+    const resultCard = document.getElementById("resultCard");
+    resultCard.classList.add("hidden");
+
+    // Mostrar la primera pregunta
+    const gameCard = document.getElementById("gameCard");
+    gameCard.classList.remove("hidden");
+
+    showQuestion();
+});
+
 
 // Mostrar la primera pregunta al cargar la página
 showQuestion();
